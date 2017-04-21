@@ -1,0 +1,168 @@
+version: "2"
+
+# USE WITH COMMON-APPS, see https://github.com/reinier-vegter/docker-compose-drupal .
+#
+# Access site at http://${NAME}.dev
+# Point search_api_solr to http://${NAME}-solr:8983/solr/#/drupal
+
+services:
+
+#  php:
+#    image: wodby/drupal-php:${PHP_WODBY_TAG}
+#    environment:
+#      PHP_DOCROOT: web # Relative path inside the /var/www/html/ directory.
+#      PHP_SENDMAIL_PATH: /usr/sbin/sendmail -t -i -S mailhog.dev:1025
+#      PHP_XDEBUG_ENABLED: 1
+#      PHP_XDEBUG_AUTOSTART: 1
+#    volumes:
+#      - ../flightcontrol-7.x-1.x-dev:/var/www/html
+#      - ./:/var/www/html/profiles/flightcontrol
+#      - ../flightcontrol-7.x-1.x-dev/profiles/flightcontrol/libraries:/var/www/html/profiles/flightcontrol/libraries
+#      - ../flightcontrol-7.x-1.x-dev/profiles/flightcontrol/modules/contrib:/var/www/html/profiles/flightcontrol/modules/contrib
+#      - ./sites/default:/var/www/html/sites/default
+#      - ./.tmp:/tmp/
+#      - ./.php.ini:/etc/php5/conf.d/zproject.ini
+##      - d4d-unison-sync:/var/www/html:rw # Replace volume to this to use docker-sync for macOS users
+##    links:
+##      - solr
+#    external_links:
+#      - mysql
+#      - dockerdns
+#    network_mode: bridge # Expose to other docker-compose networks in order to use mysql etc.
+#    dns:
+##     - dockerdns
+#      - 172.17.0.5
+
+
+  php:
+    container_name: ${NAME}
+    #image: drupal:7-apache
+    build: .
+    volumes:
+      - ../flightcontrol-7.x-1.x-dev:/var/www/html
+      - ./:/var/www/html/profiles/flightcontrol
+      - ../flightcontrol-7.x-1.x-dev/profiles/flightcontrol/libraries:/var/www/html/profiles/flightcontrol/libraries
+      - ../flightcontrol-7.x-1.x-dev/profiles/flightcontrol/modules/contrib:/var/www/html/profiles/flightcontrol/modules/contrib
+      - ./sites/default:/var/www/html/sites/default
+      - ./.tmp:/tmp/
+      - ./.php.ini:/usr/local/etc/php/conf.d/zproject.ini
+      - ../contrib/flightcontrol_wraith:/var/www/html/profiles/flightcontrol/modules/flightcontrol/flightcontrol_wraith
+    environment:
+      VIRTUAL_HOST: ${NAME}.dev
+    external_links:
+      - mysql
+      - dockerdns
+    network_mode: bridge # Expose to other docker-compose networks in order to use mysql etc.
+    dns:
+#     - dockerdns
+      - 172.17.0.4
+
+
+#  nginx:
+#    container_name: ${NAME} # without .dev if using .dev dns
+#    image: wodby/drupal-nginx:1.10-1.1.0
+#    environment:
+#      VIRTUAL_HOST: ${NAME}.dev # This tell global proxy about this container.
+#      NGINX_SERVER_NAME: ${NAME}.dev
+#      NGINX_UPSTREAM_NAME: php
+#      NGINX_DOCROOT: ${DOCROOT} # Relative path inside the /var/www/html/ directory.
+#      DRUPAL_VERSION: 8 # Allowed: 7, 8.
+#    volumes_from:
+#      - php
+#    links:
+#      - php
+#    network_mode: bridge # Expose to other docker-compose networks in order to use mysql etc.
+
+  # Solr: configure search_api_solr to connect to http://${NAME}-solr:8983/solr/#/drupal
+#  solr:
+#    image: solr:5.4.1
+#    user: root
+#    container_name: ${NAME}-solr # visit me at http://${NAME}-solr:8983/solr !
+#    volumes:
+#      - ./sites/all/modules/contrib/search_api_solr/solr-conf/5.x:/myconfig/conf
+#      - ./.solr-data:/opt/solr/server/solr/mycores
+#    environment:
+#      VIRTUAL_HOST: ${NAME}-solr.dev
+#      VIRTUAL_PORT: 8983
+#      SOLR_UID: 0
+#      SOLR_USER: root # Crazyness, I know. Found no other way because docker initiates .solr-data as root.
+#    network_mode: bridge
+##    external_links:
+##      - dockerdns
+#    dns:
+#      - 172.17.0.1
+#    command:
+#      - solr-precreate
+#      - drupal
+#      - /myconfig
+
+# Solr for D7 (using solr 4.x).
+#  # Solr: configure search_api_solr to connect to http://${NAME}-solr:8983/solr
+#  solr:
+#    image: twinbit/docker-drupal-solr
+#    container_name: ${NAME}-solr # visit me at http://${NAME}-solr:8983/solr !
+#    volumes:
+#      - ./sites/all/modules/contrib/search_api_solr/solr-conf/4.x:/myconfig
+#      - ./.solr-data:/opt/solr/example/solr/collection1/data
+#    environment:
+#      VIRTUAL_HOST: ${NAME}-solr.dev
+#      VIRTUAL_PORT: 8983
+#    network_mode: bridge
+#    entrypoint: bash -c "cp -fr /myconfig/* solr/collection1/conf/; java -Xmx1024m -DSTOP.PORT=8984 -DSTOP.KEY=stopkey -jar start.jar"
+
+
+
+
+#  pma:
+#    image: phpmyadmin/phpmyadmin
+#    environment:
+#      PMA_HOST: mariadb
+#      PMA_USER: drupal
+#      PMA_PASSWORD: drupal
+#      PHP_UPLOAD_MAX_FILESIZE: 1G
+#      PHP_MAX_INPUT_VARS: 1G
+#     ports:
+#     - "8001:80"
+
+#  mailhog:
+#    image: mailhog/mailhog
+#    ports:
+#      - "8002:8025"
+
+#  redis:
+#    image: redis:3.2-alpine
+
+#  memcached:
+#    image: memcached:1.4-alpine
+#    network_mode: bridge
+
+#  memcached-admin:
+#    image: phynias/phpmemcachedadmin
+#    ports:
+#      - "8006:80"
+
+#  solr:
+#    image: wodby/solr:5.5-1.0.0
+##    image: wodby/solr:6.3-1.0.0
+#    environment:
+#      SOLR_HEAP: 1024m
+#    ports:
+#      - "8003:8983"
+
+#  varnish:
+#    image: wodby/drupal-varnish:1.0.0
+#    depends_on:
+#      - nginx
+#    environment:
+#      VARNISH_SECRET: secret
+#      VARNISH_BACKEND_HOST: nginx
+#      VARNISH_BACKEND_PORT: 80
+#      VARNISH_MEMORY_SIZE: 256M
+#      VARNISH_STORAGE_SIZE: 1024M
+#    ports:
+#      - "8004:6081" # HTTP Proxy
+#      - "8005:6082" # Control terminal
+
+#volumes:
+#  d4d-unison-sync:
+#    external: true
